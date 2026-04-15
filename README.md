@@ -2,7 +2,7 @@
 
 **[ 🔗 Watch the 3-Minute Architectural Video Demonstration Here ](https://www.youtube.com/watch?v=trs6_DmjT2Q)**
 
-**[ 🔗 Watch the Clinic Director's Endorsement & Case Study Here ](Testimonial Goes here)**
+**[ 🔗 Watch the Clinic Director's Endorsement & Case Study Here ](https://youtube.com/shorts/YXOO-PCw0xQ?feature=share)**
 
 ## 📌 Executive Summary
 
