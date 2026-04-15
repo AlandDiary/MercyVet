@@ -2,18 +2,18 @@
 
 **[ 🔗 Watch the 3-Minute Architectural Video Demonstration Here ](https://www.youtube.com/watch?v=trs6_DmjT2Q)**
 
-**[ 🔗 Watch the Clinic Director's Endorsement & Case Study Here ](https://youtube.com/shorts/YXOO-PCw0xQ?feature=share)**
+**[ 🔗 Watch the Clinic Director's Endorsement ](https://youtube.com/shorts/YXOO-PCw0xQ?feature=share)**
 
 ## 📌 Executive Summary
 
-MercyVet is a proprietary, offline-first Enterprise Resource Planning (ERP) and Shop Management System (SMS) engineered specifically for high-volume veterinary clinics. Built to operate in environments with unstable internet connectivity, the system digitizes patient records, automates point-of-sale (POS) financials, manages clinical procedures, and enforces strict Role-Based Access Control (RBAC).
+MercyVet is a proprietary, offline-first Enterprise Resource Planning (ERP) and Shop Management System (SMS) engineered specifically for high-volume veterinary clinics/hospitals. Built to operate in environments with unstable internet connectivity, the system digitizes patient records, automates point-of-sale (POS) financials, manages clinical procedures, and enforces strict Role-Based Access Control (RBAC).
 
-To support a B2B SaaS subscription model ($100/mo), the application is compiled as a standalone executable. It is hosted on the clinic's local machine and broadcasted across the internal router to allow multi-device access (e.g., receptionists and doctors), secured by a custom cryptographic DRM engine that locks the software to the host's physical hardware.
+To support a B2B SaaS subscription model, the application is compiled as a standalone executable. It is hosted on the clinic's local machine and broadcasted across the internal router to allow multi-device access (e.g., receptionists and doctors), secured by a custom cryptographic DRM engine that locks the software to the host's physical hardware.
 
 ## 📊 System Impact & Metrics
 
 * **Production Scale:** Currently managing an active PostgreSQL database of 300+ patients, 700+ physical inventory items, 40+ clinical procedures, and processing 500+ receipts.
-* **100% Uptime:** Successfully deployed on local hardware with zero downtime over four months of continuous clinical use.
+* **100% Uptime:** Successfully deployed on local hardware with zero downtime and zero bugs over four months of continuous clinical use.
 * **Cross-Device Compatibility:** Designed with a responsive UI (CSRF-protected) that functions flawlessly across desktops, iPads, and mobile devices connected to the clinic's local network.
 
 ## 🛠️ Tech Stack & Architecture
