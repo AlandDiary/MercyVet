@@ -5,16 +5,14 @@
 **[ 🔗 Watch the Clinic Director's Endorsement ](https://youtube.com/shorts/YXOO-PCw0xQ?feature=share)**
 
 ## 📌 Executive Summary
-
-MercyVet is a proprietary, offline-first Enterprise Resource Planning (ERP) and Shop Management System (SMS) engineered specifically for high-volume veterinary clinics/hospitals. Built to operate in environments with unstable internet connectivity, the system digitizes patient records, automates point-of-sale (POS) financials, manages clinical procedures, and enforces strict Role-Based Access Control (RBAC).
-
-To support a B2B SaaS subscription model, the application is compiled as a standalone executable. It is hosted on the clinic's local machine and broadcasted across the internal router to allow multi-device access (e.g., receptionists and doctors), secured by a custom cryptographic DRM engine that locks the software to the host's physical hardware.
+MercyVet is a proprietary, offline-first Enterprise Resource Planning (ERP) and Shop Management System (SMS) engineered specifically for high-volume veterinary clinics. Built to operate in environments with unstable internet connectivity, the system digitizes patient records, automates point-of-sale (POS) financials, manages clinical procedures, and enforces strict Role-Based Access Control (RBAC).
+To support a B2B SaaS subscription model entirely offline, the application is compiled as a standalone executable. It hosts a local Waitress WSGI server dynamically broadcasted across the clinic's router via mDNS, allowing instant multi-device access (e.g., iPads, phones) securely locked down by an Asymmetric Cryptographic DRM engine.
 
 ## 📊 System Impact & Metrics
 
-* **Production Scale:** Currently managing an active PostgreSQL database of 300+ patients, 700+ physical inventory items, 40+ clinical procedures, and processing 500+ receipts.
-* **100% Uptime:** Successfully deployed on local hardware with zero downtime and zero bugs over four months of continuous clinical use.
-* **Cross-Device Compatibility:** Designed with a responsive UI (CSRF-protected) that functions flawlessly across desktops, iPads, and mobile devices connected to the clinic's local network.
+* **Production Scale:** Actively managing a PostgreSQL database of 300+ patients, 700+ physical inventory items, 40+ clinical procedures, and 500+ processed receipts.
+* **100% Uptime:** Deployed on local hardware with zero bugs and zero downtime over four months of continuous, rigorous clinical use.
+**Cross-Device Compatibility:** Engineered with zeroconf Multicast DNS (mDNS). The server broadcasts as mercyvet.local, allowing veterinary staff to instantly access the CSRF-protected responsive UI via iPads without static IP configurations.
 
 ## 🛠️ Tech Stack & Architecture
 
@@ -22,7 +20,7 @@ To support a B2B SaaS subscription model, the application is compiled as a stand
 graph TD
     subgraph Local Clinic Hardware
         A[Clinic Devices / iPads] -->|Local Network IP| B(Waitress WSGI / Flask API)
-        F[Motherboard UUID] -->|SHA-256 Hash| G{license_manager.py}
+        F[Motherboard UUID] -->|Ed25519 Signature| G{Public Key Verification}
         G -.->|Validates DRM| B
         B <-->|RealDictCursors| C[(PostgreSQL Thick DB)]
         C -.->|Nightly Query| D[backfill_drive.py Daemon]
@@ -33,26 +31,25 @@ graph TD
     end
 ```
 
-* **Backend:** Python (Flask, Waitress WSGI)
-* **Database:** PostgreSQL (Thick Database Architecture)
+* **Backend:** Python (Flask, Waitress WSGI, Threading)
+* **Database:** PostgreSQL (Thick Database Architecture, Auto-Bootstrapping)
 * **Frontend:** Server-Side Rendered HTML5/CSS3, Responsive UI
-* **Deployment:** PyInstaller (Compiled Standalone Binary), Local Network IP Broadcasting
+* **Security:** cryptography (Ed25519 Asymmetric PEM Keys), CSRF Protection, Argon2/PBKDF2 Password Hashing
+* **Deployment:** PyInstaller (Compiled Standalone Binary), InnoSetup
 * **Cloud Integration:** Automated Google Drive Disaster Recovery Daemon
+
 
 ---
 
 ## ⚙️ Core Engineering Achievements
 
-### 1. Cryptographic DRM & Hardware Locking (`license_manager.py` & `keygen.py`)
+### 1. Asymmetric Cryptographic DRM & Hardware Locking
 
-To protect intellectual property and enforce a SaaS subscription model entirely offline, I engineered a custom Digital Rights Management (DRM) solution:
-
-* **Hardware Fingerprinting:** The system queries the host machine's WMIC (Windows Management Instrumentation) to extract the unique Motherboard UUID.
-* **SHA-256 Verification:** The Motherboard UUID is concatenated with the subscription expiration date and a private cryptographic salt, then hashed via SHA-256.
-* **Proactive Expiry Alerts:** The system tracks the license expiration date. 7 days prior to expiry, a persistent red banner injects into the UI to warn the clinic to contact support, preventing sudden lockouts.
-* **B2B KeyGen Portal:** Built a separate local portal to generate Base64-encoded machine tokens for 1-month, 3-month, 6-month, and 12-month billing cycles.
-
-### 2. "Thick Database" & Automated Financials (`mercyvet.sql`)
+To protect intellectual property and enforce a SaaS subscription model offline, I engineered a military-grade Digital Rights Management (DRM) solution:
+* **Hardware Fingerprinting:** Queries the host machine's WMIC to extract the unique Motherboard UUID.
+* **Ed25519 Asymmetric Signatures:** The subscription expiration payload is signed privately via my master private_key.pem. The client software only contains a public_key.pem to mathematically verify the signature's authenticity, making forged licenses impossible.
+* **Proactive Expiry Alerts:** Tracks license duration and injects persistent UI warnings 7 days prior to expiry, culminating in a frictionless "Smart Code" renewal portal.
+### 2. Autonomous Database Bootstrapping & "Thick DB" SQL
 
 ```mermaid
 erDiagram
@@ -93,27 +90,28 @@ erDiagram
     }
 ```
 
-The PostgreSQL schema handles heavy business logic, keeping the Python API thin and exceptionally fast:
-
+The PostgreSQL schema handles heavy business logic, keeping the Python API exceptionally fast:
+* **Zero-Touch Installation:** The Python binary detects if the regional PostgreSQL instance lacks the mercyvet database. If missing, it autonomously connects, builds the database, injects 20+ relational tables, sequences, PL/pgSQL triggers, and bootstraps the default Admin user.
 * **Automated Checkout Pipeline:** When a clinician finalizes a medical visit, the procedures are automatically pushed to the POS "Waiting List" as a prepared receipt, eliminating double-entry.
-* **Net Profit Aggregation:** The system calculates real-time daily financials by dynamically subtracting procedure/product base costs, flat IQD discounts, and logged clinic expenses (e.g., utility bills) from the total gross revenue.
-* **Supplier Debt Tracking:** Engineered a dual-currency (IQD and USD) supplier ledger that tracks total owed vs. upfront payments, updating the remaining clinic debt in real-time.
+* **Immutable Financials:** Calculates real-time daily profit by dynamically tracking historic COGS (Cost of Goods Sold), IQD/USD currency discounts, and logged overhead expenses.
 
-### 3. Dynamic Role-Based Access Control (`middleware.py`)
+
+### 3. Dynamic Role-Based Access Control (Middleware)
 
 Built a highly secure middleware layer to protect sensitive financial data from unauthorized staff:
 
-* **Dynamic Role Creation:** Admins can create custom roles (e.g., "Receptionist") by checking specific UI boxes for the modules they are allowed to see.
-* **Session-Based RBAC:** Permissions are loaded into the secure session cookie upon login. The middleware dynamically restricts the UI. A Receptionist only sees Customers, Pets, and Appointments, while the Dashboard's System Administration controls and Daily Financials are completely sanitized from their view.
+* **Session-Based RBAC:** Permissions load into secure, HTTP-only session cookies. The middleware dynamically sanitizes the UI—Receptionists only route patients, while System Administration and Financial ledgers are completely hidden from the DOM and blocked at the API layer.
 
-### 4. Automated Disaster Recovery & Cloud Sync (`backfill_drive.py`)
 
-Because the clinic operates offline-first, data loss from hardware failure was a critical risk.
+### 4. Automated Disaster Recovery & Cloud Sync 
 
-* **Runtime Sync Daemon:** Engineered a Python daemon that runs automatically at 9:00 PM during clinic hours.
-* **Automated Data Structuring:** The script queries the database and dynamically generates structured Google Drive folders (e.g., `Records/PetName_Species_OwnerName_PetID`).
-* **Text-Based Mirroring:** It generates clean, standardized `.txt` medical reports (including weights, diagnoses, and treatments) and mirrors them to the drive, alongside patient profile pictures and `pg_dump` database snapshots.
-* **UI "Time Machine":** Built a System Administration panel on the Admin Dashboard that logs the last 5 automated/manual database snapshots, allowing 1-click database restoration with strict overwrite confirmations.
+To mitigate local hardware failure risks:
+
+* **Runtime Sync Daemon:** A background Python thread triggers automatically at 9:00 PM.
+* **ETL Data Structuring:** Queries the database to dynamically generate structured Google Drive hierarchies (e.g., Records/PetName_Species_OwnerID).
+* **Text-Based Mirroring:** Generates standardized .txt medical reports and mirrors them to the cloud alongside pg_dump binary backups and image attachments.
+*  **UI "Time Machine":** A 1-click database restoration panel in the Admin Dashboard logs the last 5 snapshots for immediate rollback.
+
 
 ### 5. Clinical Workflow Optimization
 
